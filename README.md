@@ -16,6 +16,7 @@ GastroFlow connects the quiet decisions behind a great service: what arrived, wh
 <p>
   <a href="#the-product">The product</a> |
   <a href="#how-the-pieces-fit">Architecture</a> |
+  <a href="#architecture-visual">Architecture visual</a> |
   <a href="#run-it-locally">Run it locally</a> |
   <a href="#repository-map">Repository map</a>
 </p>
@@ -102,12 +103,25 @@ The repository keeps the product readable from both directions:
 - the API owns the domain model and the state transitions behind those decisions;
 - the event infrastructure gives important changes a path beyond the request that created them.
 
+## Architecture visual
+
+The supplied architecture visual adds a systems-level view to the product story: a web client calls the API, the API coordinates persistence and event infrastructure, and local development brings the supporting services together through Docker Compose.
+
+<p align="center">
+  <img src="./docs/gastroflow-architecture.png" alt="GastroFlow current implementation architecture" width="100%">
+</p>
+
+<p align="center"><em>Current implementation context: the API is the boundary where operational state, events, asynchronous work, and realtime updates meet.</em></p>
+
+The visual is a high-level reference. In this checkout, the web console lives in `gasroflowui/` and its package is React/Vite; use [the frontend contracts](./gasroflowui/docs/API_CONTRACTS.md) and [the API README](./gastroflow-api/README.md) for exact current implementation details.
+
 ## What lives here
 
 ```text
 GastroFlow/
 |- gastroflow-api/   Domain API, persistence, events, workers, and tests
 |- gasroflowui/      React + Vite operations console
+|- docs/              Repository-level architecture visuals
 |- src/              Shared or exploratory project material
 |- .vscode/          Local development launch configuration
 ```
