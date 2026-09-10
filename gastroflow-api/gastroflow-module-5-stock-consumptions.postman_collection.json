@@ -1,0 +1,192 @@
+{
+  "info": {
+    "name": "GastroFlow Module 5 - Stock Consumptions",
+    "description": "Local Postman collection for testing recipe-sale stock consumption, FIFO/FEFO inventory deductions, stock movements, and local StockConsumed event publishing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "restaurantId",
+      "value": "rest_demo_001"
+    },
+    {
+      "key": "recipeId",
+      "value": "recipe_rest_demo_001_steak_plate"
+    },
+    {
+      "key": "movementId",
+      "value": "movement_rest_demo_001_replace_me"
+    }
+  ],
+  "item": [
+    {
+      "name": "Prereq - Seed Demo Restaurant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "Prereq - Seed Demo Ingredients",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/ingredients/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "ingredients", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "Prereq - Seed Demo Inventory Batches",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "Prereq - Seed Demo Recipes",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "Consume Recipe Sale - Steak Plate x2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.movements && json.movements.length > 0) {",
+              "  pm.collectionVariables.set('movementId', json.movements[0].id);",
+              "}",
+              "pm.test('Steak Plate x2 financial summary is correct', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "  pm.expect(json.recipeName).to.eql('Steak Plate');",
+              "  pm.expect(json.quantitySold).to.eql(2);",
+              "  pm.expect(json.unitMenuPrice).to.eql(18.99);",
+              "  pm.expect(json.totalSalesRevenue).to.eql(37.98);",
+              "  pm.expect(json.inventoryCostConsumed).to.eql(9.58);",
+              "  pm.expect(json.estimatedGrossProfit).to.eql(28.4);",
+              "  pm.expect(json.estimatedGrossMarginPercentage).to.eql(74.78);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"quantitySold\": 2,\n  \"notes\": \"Manual Module 5 transaction test.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/recipe-sale",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "stock-consumptions", "recipe-sale"]
+        }
+      }
+    },
+    {
+      "name": "List Stock Movements",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/movements",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "stock-consumptions", "movements"]
+        }
+      }
+    },
+    {
+      "name": "List Movements By Recipe",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/movements?recipeId={{recipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "stock-consumptions", "movements"],
+          "query": [
+            {
+              "key": "recipeId",
+              "value": "{{recipeId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "List Consumption Movements",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/movements?movementType=CONSUMPTION",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "stock-consumptions", "movements"],
+          "query": [
+            {
+              "key": "movementType",
+              "value": "CONSUMPTION"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Stock Movement By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/movements/{{movementId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "stock-consumptions", "movements", "{{movementId}}"]
+        }
+      }
+    },
+    {
+      "name": "Verify Inventory Batch Was Reduced",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/batch_rest_demo_001_steak_demo_001",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "batch_rest_demo_001_steak_demo_001"]
+        }
+      }
+    }
+  ]
+}

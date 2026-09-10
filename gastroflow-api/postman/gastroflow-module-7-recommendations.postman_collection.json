@@ -1,0 +1,666 @@
+{
+  "info": {
+    "_postman_id": "dd7dfdad-f815-465a-a071-654d18721ff0",
+    "name": "GastroFlow - Module 7 Recommendations",
+    "description": "Local Postman collection for testing GastroFlow Module 7: Recommendations. It seeds the restaurant, ingredients, inventory, and recipes, runs recipe-sale stock consumption, creates waste signals, generates rule-based recommendations, filters them, fetches one by ID, and applies/dismisses recommendations.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "restaurantId",
+      "value": "rest_demo_001"
+    },
+    {
+      "key": "ingredientId",
+      "value": "ingredient_rest_demo_001_lettuce"
+    },
+    {
+      "key": "inventoryBatchId",
+      "value": "batch_rest_demo_001_lettuce_demo_001"
+    },
+    {
+      "key": "recipeId",
+      "value": "recipe_rest_demo_001_chicken_rice_bowl"
+    },
+    {
+      "key": "recommendationId",
+      "value": "replace_after_generate"
+    },
+    {
+      "key": "dismissRecommendationId",
+      "value": "replace_after_generate"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Health Check - Unknown Route Returns 404",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('API is reachable', function () {",
+              "  pm.expect(pm.response.code).to.eql(404);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/not-a-real-route",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "not-a-real-route"
+          ]
+        }
+      }
+    },
+    {
+      "name": "01 Seed Demo Restaurant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 Seed Demo Ingredients",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/ingredients/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "ingredients",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 Seed Demo Inventory Batches",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "inventory-batches",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "04 Seed Demo Recipes",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recipes",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "05 Run Restaurant Activity - Steak Plate x3",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('Steak Plate activity consumed stock', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "  pm.expect(json.recipeName).to.eql('Steak Plate');",
+              "  pm.expect(json.quantitySold).to.eql(3);",
+              "  pm.expect(json.unitMenuPrice).to.eql(18.99);",
+              "  pm.expect(json.totalSalesRevenue).to.eql(56.97);",
+              "  pm.expect(json.inventoryCostConsumed).to.eql(14.37);",
+              "  pm.expect(json.estimatedGrossProfit).to.eql(42.6);",
+              "  pm.expect(json.estimatedGrossMarginPercentage).to.eql(74.78);",
+              "  pm.expect(json.movements.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"recipeId\": \"recipe_rest_demo_001_steak_plate\",\n  \"quantitySold\": 3,\n  \"notes\": \"Module 7 setup: restaurant activity before recommendation generation.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/recipe-sale",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "stock-consumptions",
+            "recipe-sale"
+          ]
+        },
+        "description": "Runs recipe-sale stock consumption before generating recommendations. This makes the recommendation engine evaluate inventory after real operational activity."
+      }
+    },
+    {
+      "name": "06 Run Restaurant Activity - Chicken Rice Bowl x4",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "pm.test('Chicken Rice Bowl activity consumed stock', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "  pm.expect(json.recipeName).to.eql('Chicken Rice Bowl');",
+              "  pm.expect(json.quantitySold).to.eql(4);",
+              "  pm.expect(json.unitMenuPrice).to.eql(13.49);",
+              "  pm.expect(json.totalSalesRevenue).to.eql(53.96);",
+              "  pm.expect(json.inventoryCostConsumed).to.eql(11.4);",
+              "  pm.expect(json.estimatedGrossProfit).to.eql(42.56);",
+              "  pm.expect(json.estimatedGrossMarginPercentage).to.eql(78.87);",
+              "  pm.expect(json.movements.length).to.be.above(0);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"recipeId\": \"{{recipeId}}\",\n  \"quantitySold\": 4,\n  \"notes\": \"Module 7 setup: second restaurant activity signal before recommendation generation.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/recipe-sale",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "stock-consumptions",
+            "recipe-sale"
+          ]
+        },
+        "description": "Consumes chicken, rice, tomato, lettuce, and onion before recommendations are generated."
+      }
+    },
+    {
+      "name": "07 Create Waste Signal - Spoiled Lettuce 100g",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryBatchId\": \"{{inventoryBatchId}}\",\n  \"quantityWasted\": 100,\n  \"reason\": \"SPOILED\",\n  \"notes\": \"Module 7 setup: first lettuce waste signal for recommendation engine.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        },
+        "description": "Creates the first small lettuce waste event. Two waste events for the same ingredient trigger the WASTE_PATTERN_DETECTED recommendation rule."
+      }
+    },
+    {
+      "name": "08 Create Waste Signal - Expired Lettuce 100g",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryBatchId\": \"{{inventoryBatchId}}\",\n  \"quantityWasted\": 100,\n  \"reason\": \"EXPIRED\",\n  \"notes\": \"Module 7 setup: second lettuce waste signal for recommendation engine.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        }
+      }
+    },
+    {
+      "name": "09 Generate Recommendations",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const recommendations = json.recommendations || [];",
+              "if (recommendations.length > 0) {",
+              "  pm.collectionVariables.set('recommendationId', recommendations[0].id);",
+              "  const dismissTarget = recommendations.find((recommendation) => recommendation.type === 'WASTE_PATTERN_DETECTED') || recommendations[1] || recommendations[0];",
+              "  pm.collectionVariables.set('dismissRecommendationId', dismissTarget.id);",
+              "}",
+              "pm.test('Recommendations generated', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "  pm.expect(json.restaurantId).to.eql(pm.collectionVariables.get('restaurantId'));",
+              "  pm.expect(json.generatedCount).to.be.above(0);",
+              "});",
+              "pm.test('At least one open recommendation is returned', function () {",
+              "  pm.expect(recommendations.some((recommendation) => recommendation.status === 'OPEN')).to.eql(true);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"notes\": \"Manual Module 7 recommendation generation test.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations/generate",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations",
+            "generate"
+          ]
+        },
+        "description": "Reads inventory batches, active recipes, and waste events, then creates rule-based recommendations."
+      }
+    },
+    {
+      "name": "10 List Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ]
+        }
+      }
+    },
+    {
+      "name": "11 List Open Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?status=OPEN",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "OPEN"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "12 List High Priority Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?priority=HIGH",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "priority",
+              "value": "HIGH"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "13 List Use Soon Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?type=USE_SOON",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "USE_SOON"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "14 List Waste Pattern Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?type=WASTE_PATTERN_DETECTED",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "WASTE_PATTERN_DETECTED"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "15 List Recommendations By Ingredient",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?ingredientId={{ingredientId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "ingredientId",
+              "value": "{{ingredientId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "16 List Recommendations By Recipe",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?recipeId={{recipeId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "recipeId",
+              "value": "{{recipeId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "17 Get Recommendation By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations/{{recommendationId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations",
+            "{{recommendationId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "18 Apply Recommendation",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations/{{recommendationId}}/apply",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations",
+            "{{recommendationId}}",
+            "apply"
+          ]
+        },
+        "description": "Marks one generated recommendation as APPLIED. This represents the user following the engine's advice."
+      }
+    },
+    {
+      "name": "19 Dismiss Recommendation",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations/{{dismissRecommendationId}}/dismiss",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations",
+            "{{dismissRecommendationId}}",
+            "dismiss"
+          ]
+        },
+        "description": "Marks one generated recommendation as DISMISSED. This represents the user ignoring or rejecting the engine's advice."
+      }
+    },
+    {
+      "name": "20 List Applied Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?status=APPLIED",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "APPLIED"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "21 List Dismissed Recommendations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?status=DISMISSED",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "DISMISSED"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "22 Validation - Invalid Recommendation Type Returns 400",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Invalid type is rejected', function () {",
+              "  pm.expect(pm.response.code).to.eql(400);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations?type=NOT_A_REAL_TYPE",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "recommendations"
+          ],
+          "query": [
+            {
+              "key": "type",
+              "value": "NOT_A_REAL_TYPE"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

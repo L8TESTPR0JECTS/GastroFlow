@@ -1,0 +1,526 @@
+{
+  "info": {
+    "name": "GastroFlow - Module 9 Simulation Engine",
+    "_postman_id": "gastroflow-module-9-simulation-engine",
+    "description": "Validation collection for timeline simulations and targeted simulation scenarios.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "restaurantId",
+      "value": "rest_demo_001"
+    },
+    {
+      "key": "windowStartsAt",
+      "value": "2026-08-03T11:00:00.000Z"
+    },
+    {
+      "key": "windowEndsAt",
+      "value": "2026-08-03T14:00:00.000Z"
+    }
+  ],
+  "item": [
+    {
+      "name": "00. Setup - Seed Demo Data",
+      "item": [
+        {
+          "name": "Seed - Restaurant",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/restaurants/seed/demo"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('restaurant seed succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Ingredients",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/ingredients/seed/demo"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('ingredients are seeded', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.ingredientsCreated).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Inventory Batches",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/seed/demo"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('inventory batches are seeded', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.inventoryBatchesCreated).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Seed - Recipes",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/seed/demo"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('recipes are seeded', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.recipesCreated).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Generate - Initial Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"notes\": \"Postman setup for recommendation scenario simulations.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/recommendations/generate"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('recommendation generation succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json).to.have.property('generatedCount');",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "10. Baseline - Dashboard Snapshot",
+      "item": [
+        {
+          "name": "Validate - Baseline Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/dashboard/summary"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('dashboard summary succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  pm.expect(json.timezone).to.equal('America/New_York');",
+                  "  pm.expect(json.generatedAtLocal).to.be.a('string');",
+                  "  pm.expect(json).to.have.property('inventory');",
+                  "  pm.expect(json).to.have.property('finance');",
+                  "  pm.expect(json).to.have.property('waste');",
+                  "});",
+                  "pm.environment.set('initialInventoryValue', json.inventory.totalInventoryValue);",
+                  "pm.environment.set('initialSalesRevenue', json.finance.totalSalesRevenue);",
+                  "pm.environment.set('initialWasteCost', json.waste.totalWasteCost);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "20. Timeline Simulations",
+      "item": [
+        {
+          "name": "Run Timeline - Full Day",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"timeline-full-day-001\",\n  \"intensity\": \"NORMAL\",\n  \"notes\": \"Postman validation: full-day timeline simulation.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/timeline/full-day"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('full-day timeline simulation succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('FULL_DAY');",
+                  "  pm.expect(json.timeline.length).to.be.above(0);",
+                  "  pm.expect(json.summary.timelineEventCount).to.equal(json.timeline.length);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Timeline - Week",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"timeline-week-001\",\n  \"intensity\": \"NORMAL\",\n  \"notes\": \"Postman validation: week timeline simulation.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/timeline/week"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('week timeline simulation succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('WEEK');",
+                  "  pm.expect(json.timeline.length).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Timeline - Lunch Rush",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"timeline-lunch-rush-001\",\n  \"notes\": \"Postman validation: lunch rush timeline simulation.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/timeline/lunch-rush"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('lunch-rush timeline simulation succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('LUNCH_RUSH');",
+                  "  pm.expect(json.intensity).to.equal('BUSY');",
+                  "  pm.expect(json.timeline.every((event) => event.period === 'LUNCH')).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Timeline - Custom Time Window",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"startsAt\": \"{{windowStartsAt}}\",\n  \"endsAt\": \"{{windowEndsAt}}\",\n  \"seed\": \"timeline-window-001\",\n  \"intensity\": \"NORMAL\",\n  \"notes\": \"Postman validation: explicit time-window simulation.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/timeline/time-window"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('custom time-window simulation succeeds', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('TIME_WINDOW');",
+                  "  pm.expect(json.timeframe.startsAt).to.equal(pm.variables.get('windowStartsAt'));",
+                  "  pm.expect(json.timeframe.endsAt).to.equal(pm.variables.get('windowEndsAt'));",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "30. Targeted Scenarios",
+      "item": [
+        {
+          "name": "Run Scenario - Supplier Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"scenario-supplier-delivery-001\",\n  \"intensity\": \"QUIET\",\n  \"notes\": \"Postman validation: targeted supplier delivery scenario.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/scenario/supplier-delivery"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('supplier delivery scenario executes supplier delivery behavior', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('SUPPLIER_DELIVERY');",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'SUPPLIER_DELIVERY')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'SUPPLIER_DELIVERY')).to.equal(true);",
+                  "  pm.expect(json.summary.inventoryBatchCount).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Scenario - Waste Spike",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"scenario-waste-spike-001\",\n  \"intensity\": \"QUIET\",\n  \"notes\": \"Postman validation: targeted waste spike scenario.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/scenario/waste-spike"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('waste spike scenario executes waste behavior', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('WASTE_SPIKE');",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'WASTE_EVENT')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'WASTE_EVENT')).to.equal(true);",
+                  "  pm.expect(json.summary.wasteEventCount).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Scenario - Overbuying",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"scenario-overbuying-001\",\n  \"intensity\": \"QUIET\",\n  \"notes\": \"Postman validation: targeted overbuying scenario.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/scenario/overbuying"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('overbuying scenario executes bulk delivery behavior', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('OVERBUYING');",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'SUPPLIER_DELIVERY')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'OVERBUYING')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'SUPPLIER_DELIVERY')).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Scenario - Follow Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"scenario-follow-recommendations-001\",\n  \"intensity\": \"QUIET\",\n  \"notes\": \"Postman validation: targeted follow-recommendations scenario.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/scenario/follow-recommendations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('follow-recommendations scenario generates and applies recommendations', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('FOLLOW_RECOMMENDATIONS');",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'RECOMMENDATION_GENERATION')).to.equal(true);",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'RECOMMENDATION_APPLIED')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'RECOMMENDATION_GENERATION')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'RECOMMENDATION_APPLIED')).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Run Scenario - Ignore Recommendations",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seed\": \"scenario-ignore-recommendations-001\",\n  \"intensity\": \"QUIET\",\n  \"notes\": \"Postman validation: targeted ignore-recommendations scenario.\"\n}"
+            },
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/simulations/scenario/ignore-recommendations"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('ignore-recommendations scenario generates and dismisses recommendations', function () {",
+                  "  pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+                  "  pm.expect(json.simulationType).to.equal('IGNORE_RECOMMENDATIONS');",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'RECOMMENDATION_GENERATION')).to.equal(true);",
+                  "  pm.expect(json.timeline.some((event) => event.eventType === 'RECOMMENDATION_DISMISSED')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'RECOMMENDATION_GENERATION')).to.equal(true);",
+                  "  pm.expect(json.actions.some((action) => action.type === 'RECOMMENDATION_DISMISSED')).to.equal(true);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "40. After Scenarios - Dashboard Snapshot",
+      "item": [
+        {
+          "name": "Validate - Dashboard After Simulations",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/restaurants/{{restaurantId}}/dashboard/summary"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('dashboard still returns finance, inventory, and waste totals', function () {",
+                  "  pm.expect(pm.response.code).to.equal(200);",
+                  "  pm.expect(json.timezone).to.equal('America/New_York');",
+                  "  pm.expect(json.generatedAtLocal).to.be.a('string');",
+                  "  pm.expect(json.finance.totalSalesRevenue).to.be.a('number');",
+                  "  pm.expect(json.finance.estimatedGrossProfit).to.be.a('number');",
+                  "  pm.expect(json.inventory.totalInventoryValue).to.be.a('number');",
+                  "  pm.expect(json.waste.totalWasteCost).to.be.a('number');",
+                  "});",
+                  "pm.environment.set('finalSalesRevenue', json.finance.totalSalesRevenue);",
+                  "pm.environment.set('finalInventoryValue', json.inventory.totalInventoryValue);",
+                  "pm.environment.set('finalWasteCost', json.waste.totalWasteCost);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

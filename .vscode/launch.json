@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "NestJS: Debug (official)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "start:debug"],
+      "cwd": "${workspaceFolder}/gastroflow-api",
+      "console": "integratedTerminal",
+      "restart": true,
+      "port": 9229,
+      "envFile": "${workspaceFolder}/gastroflow-api/.env",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

@@ -1,0 +1,448 @@
+{
+  "info": {
+    "_postman_id": "a2f16b0d-3476-49df-8f4d-6be0e4b6d321",
+    "name": "GastroFlow - Module 6 Waste Events",
+    "description": "Local Postman collection for testing GastroFlow Module 6: Waste Events. It creates waste from an inventory batch, verifies the waste event, verifies the linked WASTE stock movement, and confirms the inventory batch quantity/status changed.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "restaurantId",
+      "value": "rest_demo_001"
+    },
+    {
+      "key": "inventoryBatchId",
+      "value": "batch_rest_demo_001_lettuce_demo_001"
+    },
+    {
+      "key": "ingredientId",
+      "value": "ingredient_rest_demo_001_lettuce"
+    },
+    {
+      "key": "wasteEventId",
+      "value": "replace_after_create"
+    },
+    {
+      "key": "stockMovementId",
+      "value": "replace_after_create"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Health Check - Unknown Route Returns 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/not-a-real-route",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "not-a-real-route"
+          ]
+        }
+      }
+    },
+    {
+      "name": "01 Seed Demo Restaurant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "02 Seed Demo Ingredients",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/ingredients/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "ingredients",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "03 Seed Demo Inventory Batches",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/seed/demo",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "inventory-batches",
+            "seed",
+            "demo"
+          ]
+        }
+      }
+    },
+    {
+      "name": "04 Inspect Lettuce Batch Before Waste",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/{{inventoryBatchId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "inventory-batches",
+            "{{inventoryBatchId}}"
+          ]
+        },
+        "description": "The default lettuce demo batch starts with quantityReceived and quantityAvailable of 2500 grams."
+      }
+    },
+    {
+      "name": "05 Create Waste Event - Spoiled Lettuce 500g",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json.wasteEvent && json.wasteEvent.id) {",
+              "  pm.collectionVariables.set('wasteEventId', json.wasteEvent.id);",
+              "}",
+              "if (json.stockMovement && json.stockMovement.id) {",
+              "  pm.collectionVariables.set('stockMovementId', json.stockMovement.id);",
+              "}",
+              "pm.test('Waste event created', function () {",
+              "  pm.expect(pm.response.code).to.eql(201);",
+              "  pm.expect(json.wasteEvent.reason).to.eql('SPOILED');",
+              "  pm.expect(json.wasteEvent.quantityWasted).to.eql(500);",
+              "});",
+              "pm.test('Inventory batch updated after waste', function () {",
+              "  pm.expect(json.remainingQuantityAvailable).to.eql(2000);",
+              "  pm.expect(json.inventoryBatchStatus).to.eql('PARTIALLY_USED');",
+              "});",
+              "pm.test('Waste stock movement was created', function () {",
+              "  pm.expect(json.stockMovement.movementType).to.eql('WASTE');",
+              "  pm.expect(json.stockMovement.source).to.eql('MANUAL');",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryBatchId\": \"{{inventoryBatchId}}\",\n  \"quantityWasted\": 500,\n  \"reason\": \"SPOILED\",\n  \"notes\": \"Manual Module 6 test: lettuce spoiled before it could be used.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        },
+        "description": "Creates a waste event transactionally. This should reduce the inventory batch, create a wasteEvents document, create a WASTE stock movement, and publish a local WasteRecorded event."
+      }
+    },
+    {
+      "name": "06 List Waste Events",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 List Waste Events By Inventory Batch",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events?inventoryBatchId={{inventoryBatchId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ],
+          "query": [
+            {
+              "key": "inventoryBatchId",
+              "value": "{{inventoryBatchId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 List Waste Events By Ingredient",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events?ingredientId={{ingredientId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ],
+          "query": [
+            {
+              "key": "ingredientId",
+              "value": "{{ingredientId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "09 List Waste Events By Reason",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events?reason=SPOILED",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ],
+          "query": [
+            {
+              "key": "reason",
+              "value": "SPOILED"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "10 Get Waste Event By ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events/{{wasteEventId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events",
+            "{{wasteEventId}}"
+          ]
+        },
+        "description": "Run request 05 first so the collection variable wasteEventId is set."
+      }
+    },
+    {
+      "name": "11 Verify Linked WASTE Stock Movement",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/movements/{{stockMovementId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "stock-consumptions",
+            "movements",
+            "{{stockMovementId}}"
+          ]
+        },
+        "description": "Module 6 creates a stock movement with movementType WASTE. This verifies the audit trail side effect through the Module 5 movement endpoint."
+      }
+    },
+    {
+      "name": "12 List WASTE Stock Movements",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/stock-consumptions/movements?movementType=WASTE",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "stock-consumptions",
+            "movements"
+          ],
+          "query": [
+            {
+              "key": "movementType",
+              "value": "WASTE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "13 Inspect Lettuce Batch After Waste",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/{{inventoryBatchId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "inventory-batches",
+            "{{inventoryBatchId}}"
+          ]
+        },
+        "description": "After wasting 500g from the demo lettuce batch, quantityAvailable should be 2000 and status should be PARTIALLY_USED."
+      }
+    },
+    {
+      "name": "14 Validation - Reject Waste Quantity Above Available",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryBatchId\": \"{{inventoryBatchId}}\",\n  \"quantityWasted\": 999999,\n  \"reason\": \"SPOILED\",\n  \"notes\": \"Expected failure: cannot waste more than available stock.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        },
+        "description": "Expected result: 400 Bad Request because quantityWasted exceeds quantityAvailable."
+      }
+    },
+    {
+      "name": "15 Validation - Reject Invalid Waste Reason",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryBatchId\": \"{{inventoryBatchId}}\",\n  \"quantityWasted\": 100,\n  \"reason\": \"BAD_REASON\",\n  \"notes\": \"Expected failure: reason is not part of WasteReason union.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        },
+        "description": "Expected result: 400 Bad Request from DTO validation."
+      }
+    },
+    {
+      "name": "16 Validation - Reject Missing Batch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"inventoryBatchId\": \"batch_rest_demo_001_missing\",\n  \"quantityWasted\": 100,\n  \"reason\": \"DAMAGED\",\n  \"notes\": \"Expected failure: batch does not exist.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/waste-events",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "restaurants",
+            "{{restaurantId}}",
+            "waste-events"
+          ]
+        },
+        "description": "Expected result: 400 Bad Request because the inventory batch cannot be found inside the waste transaction."
+      }
+    }
+  ]
+}

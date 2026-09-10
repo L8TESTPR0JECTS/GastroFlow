@@ -1,0 +1,302 @@
+{
+  "info": {
+    "_postman_id": "2ef9a5dc-6f02-4c23-8a37-d7b0ac7a2b41",
+    "name": "GastroFlow - Module 4 Recipes",
+    "description": "Local Postman collection for testing GastroFlow Module 4: Recipes and Menu Items foundation. Run requests in order after starting the Firestore emulator and NestJS API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 Health Check - Unknown Route Returns 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/not-a-real-route",
+          "host": ["{{baseUrl}}"],
+          "path": ["not-a-real-route"]
+        }
+      }
+    },
+    {
+      "name": "01 Seed Demo Restaurant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "02 Seed Demo Ingredients",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/ingredients/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "ingredients", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "03 Optional - Seed Demo Inventory Batches",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "seed", "demo"]
+        },
+        "description": "Optional for Module 4, but useful if you want the full demo state from Modules 1-4."
+      }
+    },
+    {
+      "name": "04 Seed Demo Recipes",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "05 List Recipes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"]
+        }
+      }
+    },
+    {
+      "name": "06 Filter Recipes by Category - TACO",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes?category=TACO",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"],
+          "query": [
+            {
+              "key": "category",
+              "value": "TACO"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 Filter Recipes by Status - ACTIVE",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes?status=ACTIVE",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"],
+          "query": [
+            {
+              "key": "status",
+              "value": "ACTIVE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 Get Seeded Cheeseburger Recipe",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/{{cheeseburgerRecipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes", "{{cheeseburgerRecipeId}}"]
+        }
+      }
+    },
+    {
+      "name": "09 Create Manual Steak Rice Bowl Recipe",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Steak Rice Bowl\",\n  \"description\": \"A steak rice bowl with tomato, onion, and cheese.\",\n  \"category\": \"BOWL\",\n  \"menuPrice\": 14.49,\n  \"ingredients\": [\n    {\n      \"ingredientId\": \"{{steakIngredientId}}\",\n      \"quantity\": 180\n    },\n    {\n      \"ingredientId\": \"{{riceIngredientId}}\",\n      \"quantity\": 250\n    },\n    {\n      \"ingredientId\": \"{{tomatoIngredientId}}\",\n      \"quantity\": 50\n    },\n    {\n      \"ingredientId\": \"{{onionIngredientId}}\",\n      \"quantity\": 25\n    },\n    {\n      \"ingredientId\": \"{{cheeseIngredientId}}\",\n      \"quantity\": 35\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"]
+        },
+        "description": "Expected ID: recipe_rest_demo_001_steak_rice_bowl. The API calculates ingredient cost, gross profit, and margin."
+      }
+    },
+    {
+      "name": "10 Duplicate Create Should Return 409",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Steak Rice Bowl\",\n  \"description\": \"A duplicate steak rice bowl request to verify nameKey conflict handling.\",\n  \"category\": \"BOWL\",\n  \"menuPrice\": 14.49,\n  \"ingredients\": [\n    {\n      \"ingredientId\": \"{{steakIngredientId}}\",\n      \"quantity\": 180\n    },\n    {\n      \"ingredientId\": \"{{riceIngredientId}}\",\n      \"quantity\": 250\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"]
+        },
+        "description": "Expected result after request 09 has run: 409 Conflict."
+      }
+    },
+    {
+      "name": "11 Update Steak Rice Bowl Price and Ingredients",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"menuPrice\": 15.99,\n  \"description\": \"A higher-margin steak rice bowl with tomato, onion, cheese, and lettuce.\",\n  \"ingredients\": [\n    {\n      \"ingredientId\": \"{{steakIngredientId}}\",\n      \"quantity\": 180\n    },\n    {\n      \"ingredientId\": \"{{riceIngredientId}}\",\n      \"quantity\": 250\n    },\n    {\n      \"ingredientId\": \"{{tomatoIngredientId}}\",\n      \"quantity\": 50\n    },\n    {\n      \"ingredientId\": \"{{lettuceIngredientId}}\",\n      \"quantity\": 30\n    },\n    {\n      \"ingredientId\": \"{{onionIngredientId}}\",\n      \"quantity\": 25\n    },\n    {\n      \"ingredientId\": \"{{cheeseIngredientId}}\",\n      \"quantity\": 35\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/{{steakRiceBowlRecipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes", "{{steakRiceBowlRecipeId}}"]
+        },
+        "description": "Expected: profitability fields are recalculated."
+      }
+    },
+    {
+      "name": "12 Soft Delete Steak Rice Bowl Recipe",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes/{{steakRiceBowlRecipeId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes", "{{steakRiceBowlRecipeId}}"]
+        },
+        "description": "Expected result: isActive false and status INACTIVE."
+      }
+    },
+    {
+      "name": "13 List Inactive Recipes",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes?isActive=false",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"],
+          "query": [
+            {
+              "key": "isActive",
+              "value": "false"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "14 Invalid Duplicate Ingredient Lines Should Return 400",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"Invalid Double Steak Recipe\",\n  \"description\": \"This should fail because steak appears twice.\",\n  \"category\": \"PLATE\",\n  \"menuPrice\": 19.99,\n  \"ingredients\": [\n    {\n      \"ingredientId\": \"{{steakIngredientId}}\",\n      \"quantity\": 100\n    },\n    {\n      \"ingredientId\": \"{{steakIngredientId}}\",\n      \"quantity\": 120\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/recipes",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "recipes"]
+        },
+        "description": "Expected result: 400 Bad Request because duplicate ingredient lines are rejected."
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "restaurantId",
+      "value": "rest_demo_001",
+      "type": "string"
+    },
+    {
+      "key": "cheeseburgerRecipeId",
+      "value": "recipe_rest_demo_001_cheeseburger",
+      "type": "string"
+    },
+    {
+      "key": "steakRiceBowlRecipeId",
+      "value": "recipe_rest_demo_001_steak_rice_bowl",
+      "type": "string"
+    },
+    {
+      "key": "steakIngredientId",
+      "value": "ingredient_rest_demo_001_steak",
+      "type": "string"
+    },
+    {
+      "key": "riceIngredientId",
+      "value": "ingredient_rest_demo_001_rice",
+      "type": "string"
+    },
+    {
+      "key": "tomatoIngredientId",
+      "value": "ingredient_rest_demo_001_tomato",
+      "type": "string"
+    },
+    {
+      "key": "lettuceIngredientId",
+      "value": "ingredient_rest_demo_001_lettuce",
+      "type": "string"
+    },
+    {
+      "key": "onionIngredientId",
+      "value": "ingredient_rest_demo_001_onion",
+      "type": "string"
+    },
+    {
+      "key": "cheeseIngredientId",
+      "value": "ingredient_rest_demo_001_cheese",
+      "type": "string"
+    }
+  ]
+}

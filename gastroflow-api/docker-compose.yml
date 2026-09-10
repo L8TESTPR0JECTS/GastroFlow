@@ -1,0 +1,22 @@
+services:
+  kafka:
+    image: apache/kafka:4.3.1
+    container_name: gastroflow-kafka
+    ports:
+      - "9092:9092"
+  
+  redis:
+    image: redis:8
+    container_name: gastroflow-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: gastroflow-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest

@@ -1,0 +1,265 @@
+{
+  "info": {
+    "_postman_id": "7ddf641a-41a8-4b32-8bd2-79e5b9c0f301",
+    "name": "GastroFlow - Module 3 Inventory Batches",
+    "description": "Local Postman collection for testing GastroFlow Module 3. Run the requests in order after starting the Firestore emulator and NestJS API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "00 Health Check - Unknown Route Returns 404",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/not-a-real-route",
+          "host": ["{{baseUrl}}"],
+          "path": ["not-a-real-route"]
+        }
+      }
+    },
+    {
+      "name": "01 Seed Demo Restaurant",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "02 Seed Demo Ingredients",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/ingredients/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "ingredients", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "03 Seed Demo Inventory Batches",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/seed/demo",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "seed", "demo"]
+        }
+      }
+    },
+    {
+      "name": "04 List Inventory Batches",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches"]
+        }
+      }
+    },
+    {
+      "name": "05 Filter Inventory Batches by Ingredient - Steak",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches?ingredientId={{steakIngredientId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches"],
+          "query": [
+            {
+              "key": "ingredientId",
+              "value": "{{steakIngredientId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "06 Filter Inventory Batches by Location",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches?locationId={{locationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches"],
+          "query": [
+            {
+              "key": "locationId",
+              "value": "{{locationId}}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "07 Filter Inventory Batches by Status - AVAILABLE",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches?status=AVAILABLE",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches"],
+          "query": [
+            {
+              "key": "status",
+              "value": "AVAILABLE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "08 Get Seeded Steak Batch",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/{{steakBatchId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "{{steakBatchId}}"]
+        }
+      }
+    },
+    {
+      "name": "09 Create Manual Avocado Batch",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ingredientId\": \"{{avocadoIngredientId}}\",\n  \"locationId\": \"{{locationId}}\",\n  \"quantityReceived\": 2000,\n  \"unitCost\": 0.008,\n  \"notes\": \"Manual avocado delivery for testing inventory batch creation.\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches"]
+        },
+        "description": "This request assumes you created an Avocado ingredient in Module 2. If not, skip this request or change ingredientId to an existing ingredient."
+      }
+    },
+    {
+      "name": "10 Update Steak Batch to Partially Used",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantityAvailable\": 3200\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/{{steakBatchId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "{{steakBatchId}}"]
+        },
+        "description": "Expected status after this request: PARTIALLY_USED."
+      }
+    },
+    {
+      "name": "11 Update Steak Batch to Depleted",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"quantityAvailable\": 0\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/{{steakBatchId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "{{steakBatchId}}"]
+        },
+        "description": "Expected status after this request: DEPLETED."
+      }
+    },
+    {
+      "name": "12 Soft Delete Steak Batch",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches/{{steakBatchId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches", "{{steakBatchId}}"]
+        },
+        "description": "Expected result: isActive becomes false."
+      }
+    },
+    {
+      "name": "13 List Inactive Inventory Batches",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/restaurants/{{restaurantId}}/inventory-batches?isActive=false",
+          "host": ["{{baseUrl}}"],
+          "path": ["restaurants", "{{restaurantId}}", "inventory-batches"],
+          "query": [
+            {
+              "key": "isActive",
+              "value": "false"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "restaurantId",
+      "value": "rest_demo_001",
+      "type": "string"
+    },
+    {
+      "key": "locationId",
+      "value": "loc_demo_001",
+      "type": "string"
+    },
+    {
+      "key": "steakIngredientId",
+      "value": "ingredient_rest_demo_001_steak",
+      "type": "string"
+    },
+    {
+      "key": "steakBatchId",
+      "value": "batch_rest_demo_001_steak_demo_001",
+      "type": "string"
+    },
+    {
+      "key": "avocadoIngredientId",
+      "value": "ingredient_rest_demo_001_avocado",
+      "type": "string"
+    }
+  ]
+}
